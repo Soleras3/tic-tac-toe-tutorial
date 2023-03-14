@@ -4,30 +4,24 @@ function Square({ value, onSquareClick }) {
   return <button className="square" onClick={onSquareClick}>{value}</button>;
 }
 
-export default function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null));
-  const [turn, setTurn] = useState(1);
-  const [winner, setWinner] = useState(null);
-  const [mark, setMark] = useState('X');
-
+function Board({ squares, move, winner, mark, onPlay }) {
   function handleClick(i) {
     if (squares[i] || winner) {
       return;
     }
-    const nextMark = turn % 2 === 0 ? 'O' : 'X';
-    setMark(nextMark);
 
+    console.log(squares);
     const nextSquares = squares.slice();
-    nextSquares[i] = nextMark;
+    nextSquares[i] = mark;
 
-    setWinner(calculateWinner(nextSquares));
-    setSquares(nextSquares);
-    setTurn(turn + 1);
+    onPlay(nextSquares);
   }
 
   let status = "Next player: " + mark;
   if (winner) {
     status = "Winner: " + winner;
+  } else if (move === 9) {
+    status = "Tie game";
   }
 
   return (
@@ -50,6 +44,41 @@ export default function Board() {
       </div>
     </>
   )
+}
+
+export default function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [move, setMove] = useState(0);
+  const [winner, setWinner] = useState(null);
+  const [mark, setMark] = useState('X');
+  const currentSquares = history[move];
+
+  function handlePlay(squares) {
+    const nextHistory = history.slice();
+    nextHistory.push(squares);
+    setHistory(nextHistory);
+
+    const nextMove = move + 1;
+    const nextMark = nextMove % 2 === 0 ? 'X' : 'O';
+    setMark(nextMark);
+    setMove(nextMove);
+    setWinner(calculateWinner(squares));
+  }
+
+  console.log(currentSquares);
+
+  return (
+    <>
+      <div className="game">
+        <div className="gameBoard">
+          <Board squares={currentSquares} move={move} winner={winner} mark={mark} onPlay={handlePlay} />
+        </div>
+        <div className="gameInfo">
+          <ol>{/* todo */}</ol>
+        </div>
+      </div>
+    </>
+  );
 }
 
 function calculateWinner(squares) {
